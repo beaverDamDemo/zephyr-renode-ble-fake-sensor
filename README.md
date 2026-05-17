@@ -148,3 +148,6 @@ You should now see live sensor output, for example:
 ```text
 Sample 27: temp=24.85C hr=89 bpm battery=73% interval=1s
 ```
+
+![Screenshot 1](assets/screenshot1.png)
+![Screenshot 2](assets/screenshot2.png)
