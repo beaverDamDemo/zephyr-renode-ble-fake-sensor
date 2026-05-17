@@ -1,0 +1,32 @@
+empty_file.o: \
+ /home/glorious/programming/zephyrproject/zephyr/misc/empty_file.c \
+ /home/glorious/programming/zephyrproject/zephyr/boards/nordic/nrf52840dk/nrf52840dk_nrf52840.dts \
+ /home/glorious/programming/zephyrproject/zephyr/dts/arm/nordic/nrf52840_qiaa.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/dts/common/mem.h \
+ /home/glorious/programming/zephyrproject/zephyr/dts/arm/nordic/nrf52840.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/dts/arm/armv7-m.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/dts/common/skeleton.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/dts/vendor/nordic/nrf_common.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/adc/adc.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/dt-util.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_macro.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_internal.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_loops.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_listify.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_internal_is_eq.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_internal_util_inc.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_internal_util_dec.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/sys/util_internal_util_x2.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/gpio/gpio.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/i2c/i2c.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/input/input-event-codes.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/pinctrl/nrf-pinctrl.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/pwm/pwm.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/sensor/qdec_nrf.h \
+ /home/glorious/programming/zephyrproject/zephyr/dts/common/freq.h \
+ /home/glorious/programming/zephyrproject/zephyr/dts/arm/nordic/override.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc.h \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/regulator/nrf5x.h \
+ /home/glorious/programming/zephyrproject/zephyr/dts/vendor/nordic/nrf52840_partition.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/boards/nordic/nrf52840dk/nrf52840dk_nrf52840-pinctrl.dtsi \
+ /home/glorious/programming/zephyrproject/zephyr/include/zephyr/dt-bindings/gpio/arduino-header-r3.h
