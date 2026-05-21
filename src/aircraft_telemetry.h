@@ -6,8 +6,9 @@
 
 #define AIRCRAFT_TELEMETRY_START_LAT_E7 81005000
 #define AIRCRAFT_TELEMETRY_START_LON_E7 989841639
-#define AIRCRAFT_TELEMETRY_DEST_LAT_E7 462237000
-#define AIRCRAFT_TELEMETRY_DEST_LON_E7 144576000
+#define AIRCRAFT_TELEMETRY_DEST_LAT_E7 462286000
+#define AIRCRAFT_TELEMETRY_DEST_LON_E7 144542000
+#define AIRCRAFT_TELEMETRY_ARRIVAL_RADIUS_M 5000.0f
 
 #define AIRCRAFT_TELEMETRY_AIRCRAFT_ID 0xA1B2C3D4
 #define AIRCRAFT_TELEMETRY_INITIAL_SPEED_KPH_X10 2900U
@@ -98,6 +99,19 @@ static inline float aircraft_telemetry_rate_of_climb_mps(float altitude_m)
   return 0.0f;
 }
 
+static inline float aircraft_telemetry_haversine_distance_m(int32_t lat1_e7, int32_t lon1_e7,
+                                                            int32_t lat2_e7, int32_t lon2_e7)
+{
+  float lat1 = aircraft_telemetry_degrees_to_radians(lat1_e7 / 1e7f);
+  float lat2 = aircraft_telemetry_degrees_to_radians(lat2_e7 / 1e7f);
+  float dlat = lat2 - lat1;
+  float dlon = aircraft_telemetry_degrees_to_radians((lon2_e7 - lon1_e7) / 1e7f);
+  float a = sinf(dlat / 2.0f) * sinf(dlat / 2.0f) +
+            cosf(lat1) * cosf(lat2) * sinf(dlon / 2.0f) * sinf(dlon / 2.0f);
+  float c = 2.0f * atan2f(sqrtf(a), sqrtf(1.0f - a));
+  return 6371000.0f * c;
+}
+
 static inline float aircraft_telemetry_bearing_deg(int32_t lat1_e7, int32_t lon1_e7,
                                                    int32_t lat2_e7, int32_t lon2_e7)
 {
@@ -173,6 +187,19 @@ static inline void aircraft_telemetry_update(struct aircraft_telemetry_state *st
   }
   state->altitude_m = (int16_t)lroundf(altitude_m);
   state->rate_of_climb_mps_x10 = (int16_t)lroundf(roc_mps * 10.0f);
+
+  float dist_to_dest_m = aircraft_telemetry_haversine_distance_m(
+      state->latitude_e7, state->longitude_e7,
+      AIRCRAFT_TELEMETRY_DEST_LAT_E7, AIRCRAFT_TELEMETRY_DEST_LON_E7);
+  if (dist_to_dest_m <= AIRCRAFT_TELEMETRY_ARRIVAL_RADIUS_M)
+  {
+    state->timestamp_ms = timestamp_ms;
+    return;
+  }
+  state->heading_deg_x10 = (uint16_t)lroundf(aircraft_telemetry_bearing_deg(
+                                                 state->latitude_e7, state->longitude_e7,
+                                                 AIRCRAFT_TELEMETRY_DEST_LAT_E7, AIRCRAFT_TELEMETRY_DEST_LON_E7) *
+                                             10.0f);
 
   float speed_mps = current_speed_kph / 3.6f;
   float distance_m = speed_mps;

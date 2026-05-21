@@ -158,3 +158,18 @@ Sample 27: temp=24.85C hr=89 bpm battery=73% interval=1s
 
 ![Screenshot 1](assets/screenshot1.png)
 ![Screenshot 2](assets/screenshot2.png)
+
+# Notes
+
+```
+renode --disable-xwt --console "$HOME/programming/zephyrproject/zephyr_ble_app/renode-websocket.resc"
+```
+
+```
+(machine-0)
+sysbus.uart0 DumpHistoryBuffer
+```
+
+```
+ss -tlnp | grep 4321
+```
