@@ -9,7 +9,6 @@
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/random/random.h>
 #include <zephyr/sys/byteorder.h>
 
 #include "aircraft_telemetry.h"
@@ -237,25 +236,18 @@ static void update_fake_sensor_data(void)
   sync_values();
 }
 
-static uint32_t random32_zephyr(void *user_data)
-{
-  (void)user_data;
-  return sys_rand32_get();
-}
-
 static void update_fake_aircraft_data(void)
 {
-  aircraft_telemetry_update(&aircraft_state, &aircraft_runtime, k_uptime_get_32(),
-                            random32_zephyr, NULL);
+  aircraft_telemetry_update(&aircraft_state, &aircraft_runtime, k_uptime_get_32());
 
-  LOG_INF("Aircraft %08x: lat=%d lon=%d alt=%d m speed=%u.%u kph heading=%u.%u battery=%u%% progress=%.3f",
+  LOG_INF("Aircraft %08x: lat=%d lon=%d alt=%d m roc=%d.%d m/s speed=%u.%u kph heading=%u.%u timestamp=%u ms",
           aircraft_state.aircraft_id,
           aircraft_state.latitude_e7, aircraft_state.longitude_e7,
           aircraft_state.altitude_m,
+          aircraft_state.rate_of_climb_mps_x10 / 10, abs(aircraft_state.rate_of_climb_mps_x10 % 10),
           aircraft_state.speed_kph_x10 / 10, aircraft_state.speed_kph_x10 % 10,
           aircraft_state.heading_deg_x10 / 10, aircraft_state.heading_deg_x10 % 10,
-          aircraft_state.battery_percent,
-          (double)aircraft_runtime.progress);
+          aircraft_state.timestamp_ms);
 }
 
 static void sensor_work_handler(struct k_work *work)
