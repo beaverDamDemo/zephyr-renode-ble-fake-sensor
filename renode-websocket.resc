@@ -1,0 +1,12 @@
+using sysbus
+
+logLevel 3
+
+mach create
+machine LoadPlatformDescription @platforms/cpus/nrf52840.repl
+sysbus LoadELF $ORIGIN/build/zephyr/zephyr.elf
+
+emulation CreateServerSocketTerminal 4321 "uart_term" false
+connector Connect sysbus.uart0 uart_term
+
+start

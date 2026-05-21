@@ -137,43 +137,18 @@ This method simulates the nRF52840 DK and runs the firmware exactly as on real h
    west build -b nrf52840dk/nrf52840 -p always
    ```
 
-2. Start Renode:
+2. Start Renode in server mode with the script:
 
-   ```sh
-   renode
-   ```
+```bash
+renode --server-mode --server-mode-port 5555 renode-websocket.resc
+```
 
-   If this fails with a `dotnet: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0` message, try running it from a xfce terminal and not from the terminal within vscode.
+If this fails with a `dotnet: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0` message, try running it from an xfce terminal and not from the terminal within vscode.
 
-3. Inside the Renode prompt, create a machine:
-
-   ```renode
-   mach create
-   ```
-
-4. Load the nRF52840 platform description (this is the path that worked on this system):
-
-   ```renode
-   machine LoadPlatformDescription @platforms/cpus/nrf52840.repl
-   ```
-
-5. Load your compiled firmware:
-
-   ```renode
-   sysbus LoadELF @build/zephyr/zephyr.elf
-   ```
-
-6. Start execution:
-
-   ```renode
-   start
-   ```
-
-7. Open the UART console:
-
-   ```renode
-   showAnalyzer uart0
-   ```
+The script loads the nRF52840 platform, loads `build/zephyr/zephyr.elf`, opens
+`uart0`, and starts execution automatically. In Renode 1.16 server mode, that
+UART analyzer is WebSocket-backed, so your NestJS app can connect directly to
+the WebSocket endpoint on the same port.
 
 You should now see live sensor output, for example:
 
