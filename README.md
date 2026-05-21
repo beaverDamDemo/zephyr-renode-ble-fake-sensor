@@ -49,6 +49,18 @@ cd /home/glorious/programming/zephyrproject
 west build -p always -b native_sim zephyr_ble_app
 ```
 
+## Stand-alone console simulation
+
+`src/sim.c` is a stand-alone, console-only simulation that prints the same aircraft telemetry values your Zephyr firmware would broadcast over BLE.
+
+### Run it
+
+```sh
+cd /home/glorious/programming/zephyrproject/zephyr_ble_app
+gcc src/sim.c -o sim -lm
+./sim
+```
+
 # Running the Project
 
 This project can run in two ways:

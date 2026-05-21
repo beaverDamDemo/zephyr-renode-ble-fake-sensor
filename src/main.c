@@ -12,6 +12,8 @@
 #include <zephyr/random/random.h>
 #include <zephyr/sys/byteorder.h>
 
+#include "aircraft_telemetry.h"
+
 LOG_MODULE_REGISTER(zephyr_ble_app, LOG_LEVEL_INF);
 
 #define SENSOR_SERVICE_UUID_VAL \
@@ -36,7 +38,6 @@ static const struct bt_uuid_128 temp_char_uuid = BT_UUID_INIT_128(TEMP_CHAR_UUID
 static const struct bt_uuid_128 heart_rate_char_uuid = BT_UUID_INIT_128(HEART_RATE_CHAR_UUID_VAL);
 static const struct bt_uuid_128 battery_char_uuid = BT_UUID_INIT_128(BATTERY_CHAR_UUID_VAL);
 static const struct bt_uuid_128 interval_char_uuid = BT_UUID_INIT_128(INTERVAL_CHAR_UUID_VAL);
-
 struct sensor_state
 {
   int16_t temperature_c_x100;
@@ -54,28 +55,8 @@ static struct sensor_state state = {
     .sample_count = 0,
 };
 
-struct aircraft_telemetry_state
-{
-  uint32_t aircraft_id;
-  int32_t latitude_e7;
-  int32_t longitude_e7;
-  int16_t altitude_m;
-  uint16_t speed_kph_x10;
-  uint16_t heading_deg_x10;
-  uint8_t battery_percent;
-  uint32_t timestamp_ms;
-};
-
-static struct aircraft_telemetry_state aircraft_state = {
-    .aircraft_id = 0xA1B2C3D4,
-    .latitude_e7 = 377749000,
-    .longitude_e7 = -1224194000,
-    .altitude_m = 11000,
-    .speed_kph_x10 = 7400,
-    .heading_deg_x10 = 900,
-    .battery_percent = 87,
-    .timestamp_ms = 0,
-};
+static struct aircraft_telemetry_state aircraft_state;
+static struct aircraft_telemetry_runtime aircraft_runtime;
 
 static uint8_t temp_value[2];
 static uint8_t aircraft_adv_payload[25];
@@ -256,29 +237,25 @@ static void update_fake_sensor_data(void)
   sync_values();
 }
 
+static uint32_t random32_zephyr(void *user_data)
+{
+  (void)user_data;
+  return sys_rand32_get();
+}
+
 static void update_fake_aircraft_data(void)
 {
-  aircraft_state.latitude_e7 = (int32_t)((int32_t)(sys_rand32_get() % 1800000001U) - 900000000);
-  aircraft_state.longitude_e7 = (int32_t)((int32_t)(sys_rand32_get() % 3600000001U) - 1800000000);
-  aircraft_state.altitude_m = (int16_t)(1200U + (sys_rand32_get() % 11801U));
-  aircraft_state.speed_kph_x10 = (uint16_t)(1800U + (sys_rand32_get() % 7201U));
-  aircraft_state.heading_deg_x10 = (uint16_t)(sys_rand32_get() % 3600U);
-  aircraft_state.battery_percent = (uint8_t)(20U + (sys_rand32_get() % 81U));
-  aircraft_state.timestamp_ms = k_uptime_get_32();
+  aircraft_telemetry_update(&aircraft_state, &aircraft_runtime, k_uptime_get_32(),
+                            random32_zephyr, NULL);
 
-  LOG_INF("Aircraft %08x: lat=%d.%07d lon=%d.%07d alt=%d m speed=%u.%u kph heading=%u.%u battery=%u%% ts=%u ms",
+  LOG_INF("Aircraft %08x: lat=%d lon=%d alt=%d m speed=%u.%u kph heading=%u.%u battery=%u%% progress=%.3f",
           aircraft_state.aircraft_id,
-          aircraft_state.latitude_e7 / 10000000,
-          abs(aircraft_state.latitude_e7 % 10000000),
-          aircraft_state.longitude_e7 / 10000000,
-          abs(aircraft_state.longitude_e7 % 10000000),
+          aircraft_state.latitude_e7, aircraft_state.longitude_e7,
           aircraft_state.altitude_m,
-          aircraft_state.speed_kph_x10 / 10,
-          aircraft_state.speed_kph_x10 % 10,
-          aircraft_state.heading_deg_x10 / 10,
-          aircraft_state.heading_deg_x10 % 10,
+          aircraft_state.speed_kph_x10 / 10, aircraft_state.speed_kph_x10 % 10,
+          aircraft_state.heading_deg_x10 / 10, aircraft_state.heading_deg_x10 % 10,
           aircraft_state.battery_percent,
-          aircraft_state.timestamp_ms);
+          (double)aircraft_runtime.progress);
 }
 
 static void sensor_work_handler(struct k_work *work)
@@ -342,6 +319,7 @@ int main(void)
 {
   LOG_INF("Starting Zephyr BLE aircraft broadcaster");
 
+  aircraft_telemetry_init(&aircraft_state, &aircraft_runtime);
   sync_values();
   sync_aircraft_payload();
   k_work_init_delayable(&sensor_work, sensor_work_handler);
