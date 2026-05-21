@@ -68,6 +68,15 @@ Both methods are described below.
 
 ### Steps
 
+0. Venv
+
+   ```sh
+   cd /home/glorious/programming/zephyrproject
+   python3 -m venv .venv
+   . .venv/bin/activate
+   python -m pip install -r zephyr/scripts/requirements-base.txt
+   ```
+
 1. Enter your project directory:
 
    ```sh
@@ -100,6 +109,15 @@ This method simulates the nRF52840 DK and runs the firmware exactly as on real h
 
 ### Steps
 
+0. Venv
+
+   ```sh
+   cd /home/glorious/programming/zephyrproject
+   python3 -m venv .venv
+   . .venv/bin/activate
+   python -m pip install -r zephyr/scripts/requirements-base.txt
+   ```
+
 1. Build the firmware for the nRF52840 DK:
 
    ```sh
@@ -112,6 +130,8 @@ This method simulates the nRF52840 DK and runs the firmware exactly as on real h
    ```sh
    renode
    ```
+
+   If this fails with a `dotnet: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0` message, try running it from a xfce terminal and not from the terminal within vscode.
 
 3. Inside the Renode prompt, create a machine:
 

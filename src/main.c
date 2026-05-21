@@ -9,6 +9,7 @@
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/random/random.h>
 #include <zephyr/sys/byteorder.h>
 
 LOG_MODULE_REGISTER(zephyr_ble_app, LOG_LEVEL_INF);
@@ -27,6 +28,8 @@ LOG_MODULE_REGISTER(zephyr_ble_app, LOG_LEVEL_INF);
 
 #define INTERVAL_CHAR_UUID_VAL \
   BT_UUID_128_ENCODE(0x12345678, 0x1234, 0x5678, 0x1234, 0x56789abcdef4)
+
+#define AIRCRAFT_MANUFACTURER_ID 0x59AF
 
 static const struct bt_uuid_128 sensor_service_uuid = BT_UUID_INIT_128(SENSOR_SERVICE_UUID_VAL);
 static const struct bt_uuid_128 temp_char_uuid = BT_UUID_INIT_128(TEMP_CHAR_UUID_VAL);
@@ -51,7 +54,31 @@ static struct sensor_state state = {
     .sample_count = 0,
 };
 
+struct aircraft_telemetry_state
+{
+  uint32_t aircraft_id;
+  int32_t latitude_e7;
+  int32_t longitude_e7;
+  int16_t altitude_m;
+  uint16_t speed_kph_x10;
+  uint16_t heading_deg_x10;
+  uint8_t battery_percent;
+  uint32_t timestamp_ms;
+};
+
+static struct aircraft_telemetry_state aircraft_state = {
+    .aircraft_id = 0xA1B2C3D4,
+    .latitude_e7 = 377749000,
+    .longitude_e7 = -1224194000,
+    .altitude_m = 11000,
+    .speed_kph_x10 = 7400,
+    .heading_deg_x10 = 900,
+    .battery_percent = 87,
+    .timestamp_ms = 0,
+};
+
 static uint8_t temp_value[2];
+static uint8_t aircraft_adv_payload[25];
 static bool temp_notify_enabled;
 static bool hr_notify_enabled;
 static bool battery_notify_enabled;
@@ -61,6 +88,19 @@ static struct k_work_delayable sensor_work;
 static void sync_values(void)
 {
   sys_put_le16((uint16_t)state.temperature_c_x100, temp_value);
+}
+
+static void sync_aircraft_payload(void)
+{
+  sys_put_le16(AIRCRAFT_MANUFACTURER_ID, &aircraft_adv_payload[0]);
+  sys_put_le32(aircraft_state.aircraft_id, &aircraft_adv_payload[2]);
+  sys_put_le32((uint32_t)aircraft_state.latitude_e7, &aircraft_adv_payload[6]);
+  sys_put_le32((uint32_t)aircraft_state.longitude_e7, &aircraft_adv_payload[10]);
+  sys_put_le16((uint16_t)aircraft_state.altitude_m, &aircraft_adv_payload[14]);
+  sys_put_le16(aircraft_state.speed_kph_x10, &aircraft_adv_payload[16]);
+  sys_put_le16(aircraft_state.heading_deg_x10, &aircraft_adv_payload[18]);
+  aircraft_adv_payload[20] = aircraft_state.battery_percent;
+  sys_put_le32(aircraft_state.timestamp_ms, &aircraft_adv_payload[21]);
 }
 
 static ssize_t read_temp(struct bt_conn *conn, const struct bt_gatt_attr *attr,
@@ -144,13 +184,22 @@ BT_GATT_SERVICE_DEFINE(sensor_svc,
 
 static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL, SENSOR_SERVICE_UUID_VAL),
+    BT_DATA(BT_DATA_MANUFACTURER_DATA, aircraft_adv_payload,
+            sizeof(aircraft_adv_payload)),
 };
 
-static const struct bt_data sd[] = {
-    BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME,
-            sizeof(CONFIG_BT_DEVICE_NAME) - 1),
-};
+static void update_aircraft_advertising(void)
+{
+  int err;
+
+  sync_aircraft_payload();
+
+  err = bt_le_adv_update_data(ad, ARRAY_SIZE(ad), NULL, 0);
+  if (err != 0)
+  {
+    LOG_WRN("Aircraft advertising update failed (%d)", err);
+  }
+}
 
 static void send_notifications(void)
 {
@@ -205,19 +254,38 @@ static void update_fake_sensor_data(void)
   }
 
   sync_values();
+}
 
-  LOG_INF("Sample %u: temp=%d.%02dC hr=%u bpm battery=%u%% interval=%us",
-          state.sample_count,
-          state.temperature_c_x100 / 100,
-          abs(state.temperature_c_x100 % 100),
-          state.heart_rate_bpm,
-          state.battery_percent,
-          state.update_interval_s);
+static void update_fake_aircraft_data(void)
+{
+  aircraft_state.latitude_e7 = (int32_t)((int32_t)(sys_rand32_get() % 1800000001U) - 900000000);
+  aircraft_state.longitude_e7 = (int32_t)((int32_t)(sys_rand32_get() % 3600000001U) - 1800000000);
+  aircraft_state.altitude_m = (int16_t)(1200U + (sys_rand32_get() % 11801U));
+  aircraft_state.speed_kph_x10 = (uint16_t)(1800U + (sys_rand32_get() % 7201U));
+  aircraft_state.heading_deg_x10 = (uint16_t)(sys_rand32_get() % 3600U);
+  aircraft_state.battery_percent = (uint8_t)(20U + (sys_rand32_get() % 81U));
+  aircraft_state.timestamp_ms = k_uptime_get_32();
+
+  LOG_INF("Aircraft %08x: lat=%d.%07d lon=%d.%07d alt=%d m speed=%u.%u kph heading=%u.%u battery=%u%% ts=%u ms",
+          aircraft_state.aircraft_id,
+          aircraft_state.latitude_e7 / 10000000,
+          abs(aircraft_state.latitude_e7 % 10000000),
+          aircraft_state.longitude_e7 / 10000000,
+          abs(aircraft_state.longitude_e7 % 10000000),
+          aircraft_state.altitude_m,
+          aircraft_state.speed_kph_x10 / 10,
+          aircraft_state.speed_kph_x10 % 10,
+          aircraft_state.heading_deg_x10 / 10,
+          aircraft_state.heading_deg_x10 % 10,
+          aircraft_state.battery_percent,
+          aircraft_state.timestamp_ms);
 }
 
 static void sensor_work_handler(struct k_work *work)
 {
   update_fake_sensor_data();
+  update_fake_aircraft_data();
+  update_aircraft_advertising();
   send_notifications();
   (void)k_work_reschedule(&sensor_work, K_SECONDS(state.update_interval_s));
 }
@@ -258,22 +326,24 @@ static void bt_ready(int err)
 
   LOG_INF("Bluetooth initialized");
 
-  err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+  sync_aircraft_payload();
+  err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), NULL, 0);
   if (err)
   {
     LOG_ERR("Advertising failed to start (err %d)", err);
     return;
   }
 
-  LOG_INF("Advertising started: %s", CONFIG_BT_DEVICE_NAME);
+  LOG_INF("Advertising started with aircraft telemetry payload");
   (void)k_work_reschedule(&sensor_work, K_SECONDS(state.update_interval_s));
 }
 
 int main(void)
 {
-  LOG_INF("Starting Zephyr BLE sensor broadcaster");
+  LOG_INF("Starting Zephyr BLE aircraft broadcaster");
 
   sync_values();
+  sync_aircraft_payload();
   k_work_init_delayable(&sensor_work, sensor_work_handler);
 
   (void)bt_enable(bt_ready);
