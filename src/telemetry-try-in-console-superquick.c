@@ -9,20 +9,22 @@
 
 static struct aircraft_telemetry_state aircraft_state;
 static struct aircraft_telemetry_runtime aircraft_runtime;
+static uint32_t simulated_timestamp_ms;
 
 static void update_fake_aircraft_data(void)
 {
   aircraft_telemetry_update(&aircraft_state, &aircraft_runtime,
-                            (uint32_t)(aircraft_runtime.update_count * 1000U));
+                            simulated_timestamp_ms);
+  simulated_timestamp_ms += 1000U;
 }
 
 int main(void)
 {
-  printf("Starting console aircraft telemetry simulator\n");
+  printf("Starting superquick console aircraft telemetry simulator\n");
 
   aircraft_telemetry_init(&aircraft_state, &aircraft_runtime);
+  simulated_timestamp_ms = 1000U;
 
-  /* initial print: use aircraft_state (not undefined 'state') and print floats */
   printf("Aircraft %08X | Lat: %.7f | Lon: %.7f | Alt: %dm | ROC: %.1f m/s | Speed: %.1f kph | Heading: %.1f deg | t=%u ms\n",
          aircraft_state.aircraft_id,
          aircraft_state.latitude_e7 / 1e7f,
@@ -35,11 +37,13 @@ int main(void)
 
   while (1)
   {
-    update_fake_aircraft_data();
+    for (int i = 0; i < 100; i++)
+    {
+      update_fake_aircraft_data();
+    }
 
-    /* print smooth values (floats) so ROC/speed/heading are not quantized in output */
-        printf("Aircraft %08X | Lat: %.7f | Lon: %.7f | Alt: %dm | "
-          "ROC: %.1f m/s | Speed: %.1f kph | Heading: %.1f deg | t=%u ms\n",
+    printf("Aircraft %08X | Lat: %.7f | Lon: %.7f | Alt: %dm | "
+           "ROC: %.1f m/s | Speed: %.1f kph | Heading: %.1f deg | t=%u ms\n",
            aircraft_state.aircraft_id,
            aircraft_state.latitude_e7 / 1e7f,
            aircraft_state.longitude_e7 / 1e7f,
@@ -50,7 +54,9 @@ int main(void)
            aircraft_state.timestamp_ms);
 
     fflush(stdout);
-    usleep(1000 * 1000); // 1 second
+
+    usleep(1000 * 1000);
   }
+
   return 0;
 }

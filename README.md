@@ -1,6 +1,11 @@
-# Zephyr BLE App
+# Zephyr UART Telemetry App
+
+This application was originally designed for BLE broadcasting, but **Bluetooth support has been fully removed**.
+The firmware now outputs aircraft telemetry **exclusively over UART**, which is ideal for Renode simulation and socket‑based telemetry streaming.
 
 This app is configured for a local Zephyr workspace checkout.
+
+---
 
 ## Default behavior
 
@@ -9,33 +14,39 @@ This app is configured for a local Zephyr workspace checkout.
 - Uses `../.venv/bin/python` automatically when that virtualenv exists.
 - Uses the workspace-local Zephyr SDK copy in `../.zephyr-sdk-1.0.1` when present.
 
+---
+
 ## Setup
 
 ```sh
-cd /home/glorious/programming/zephyrproject
+cd /path/to/zephyrproject
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r zephyr/scripts/requirements-base.txt
 ```
+
+---
 
 ## Build requirements
 
 - The workspace includes a local Zephyr SDK copy in `.zephyr-sdk-1.0.1`.
 - If you remove that copy, install Zephyr SDK 1.0.1 and point `ZEPHYR_SDK_INSTALL_DIR` at it.
 
+---
+
 ## Configure/build examples
 
 ```sh
-cd /home/glorious/programming/zephyrproject
+cd /path/to/zephyrproject
 . .venv/bin/activate
 cmake -S zephyr_ble_app -B build/zephyr_ble_app -DBOARD=native_sim -DZEPHYR_BASE="$PWD/zephyr"
 cmake --build build/zephyr_ble_app
 ```
 
-If you want the BLE simulator target instead, use `nrf52_bsim` and provide BabbleSim:
+If you want the BabbleSim target instead, use `nrf52_bsim` and provide BabbleSim:
 
 ```sh
-cd /home/glorious/programming/zephyrproject
+cd /path/to/zephyrproject
 . .venv/bin/activate
 BSIM_COMPONENTS_PATH=/path/to/bsim/components BSIM_OUT_PATH=/path/to/bsim/out \
     cmake -S zephyr_ble_app -B build/zephyr_ble_app -DBOARD=nrf52_bsim -DZEPHYR_BASE="$PWD/zephyr"
@@ -44,22 +55,26 @@ BSIM_COMPONENTS_PATH=/path/to/bsim/components BSIM_OUT_PATH=/path/to/bsim/out \
 If `west` is installed in the virtualenv, you can also build with:
 
 ```sh
-cd /home/glorious/programming/zephyrproject
+cd /path/to/zephyrproject
 . .venv/bin/activate
 west build -p always -b native_sim zephyr_ble_app
 ```
 
+---
+
 ## Stand-alone console simulation
 
-`src/sim.c` is a stand-alone, console-only simulation that prints the same aircraft telemetry values your Zephyr firmware would broadcast over BLE.
+`src/sim.c` is a stand-alone, console-only simulation that prints the same aircraft telemetry values your Zephyr firmware now outputs over **UART**.
 
 ### Run it
 
 ```sh
-cd /home/glorious/programming/zephyrproject/zephyr_ble_app
+cd /path/to/zephyrproject/zephyr_ble_app
 gcc src/sim.c -o sim -lm
 ./sim
 ```
+
+---
 
 # Running the Project
 
@@ -74,16 +89,16 @@ Both methods are described below.
 
 ## Running Locally (native_sim)
 
-> ⚠️ **Warning:**
-> Running locally does **not** provide real Bluetooth hardware.
-> BLE features will not work, but the app will run and print sensor data.
+> ⚠️ **Note:**
+> BLE support has been removed.
+> The firmware now prints telemetry over **UART only**, even when running locally.
 
 ### Steps
 
-0. Venv
+0. Create and activate virtualenv:
 
    ```sh
-   cd /home/glorious/programming/zephyrproject
+   cd /path/to/zephyrproject
    python3 -m venv .venv
    . .venv/bin/activate
    python -m pip install -r zephyr/scripts/requirements-base.txt
@@ -107,10 +122,10 @@ Both methods are described below.
    ./build/zephyr/zephyr.exe
    ```
 
-You should see output like:
+You should see UART-style telemetry output, for example:
 
 ```text
-Sample 1: temp=24.80C hr=75 bpm battery=80% interval=1s
+Aircraft 1234ABCD: lat=... lon=... alt=... speed=... heading=...
 ```
 
 ---
@@ -121,10 +136,10 @@ This method simulates the nRF52840 DK and runs the firmware exactly as on real h
 
 ### Steps
 
-0. Venv
+0. Virtualenv:
 
    ```sh
-   cd /home/glorious/programming/zephyrproject
+   cd /path/to/zephyrproject
    python3 -m venv .venv
    . .venv/bin/activate
    python -m pip install -r zephyr/scripts/requirements-base.txt
@@ -143,26 +158,25 @@ This method simulates the nRF52840 DK and runs the firmware exactly as on real h
 renode --server-mode --server-mode-port 5555 renode-websocket.resc
 ```
 
-If this fails with a `dotnet: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0` message, try running it from an xfce terminal and not from the terminal within vscode.
-
 The script loads the nRF52840 platform, loads `build/zephyr/zephyr.elf`, opens
-`uart0`, and starts execution automatically. In Renode 1.16 server mode, that
-UART analyzer is WebSocket-backed, so your NestJS app can connect directly to
-the WebSocket endpoint on the same port.
+`uart0`, and starts execution automatically.
+Renode exposes the UART as a WebSocket endpoint, which your simulation environment can connect to.
 
-You should now see live sensor output, for example:
+You should now see live UART telemetry output, for example:
 
 ```text
-Sample 27: temp=24.85C hr=89 bpm battery=73% interval=1s
+Aircraft 1234ABCD: lat=... lon=... alt=... speed=... heading=...
 ```
 
 ![Screenshot 1](assets/screenshot1.png)
 ![Screenshot 2](assets/screenshot2.png)
 
+---
+
 # Notes
 
 ```
-renode --disable-xwt --console "$HOME/programming/zephyrproject/zephyr_ble_app/renode-websocket.resc"
+renode --disable-xwt --console "/path/to/zephyrproject/zephyr_ble_app/renode-websocket.resc"
 ```
 
 ```

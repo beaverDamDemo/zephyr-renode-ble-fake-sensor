@@ -94,8 +94,8 @@ events:
     checks:
       - "Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS"
     directories:
-      source: "/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-MSyiiC"
-      binary: "/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-MSyiiC"
+      source: "/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-0DMhRV"
+      binary: "/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-0DMhRV"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -105,11 +105,11 @@ events:
       variable: "C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS"
       cached: true
       stdout: |
-        Change Dir: '/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-MSyiiC'
+        Change Dir: '/home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-0DMhRV'
         
-        Run Build Command(s): /usr/bin/ninja -v cmTC_4d3e8
-        [1/2] /opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc -DC_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS  -nostartfiles -nostdlib -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--entry=0 -fuse-ld=bfd -std=c99   -Wformat-signedness -o CMakeFiles/cmTC_4d3e8.dir/src.c.obj -c /home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-MSyiiC/src.c
-        [2/2] : && /opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc -nostartfiles -nostdlib -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--entry=0 -fuse-ld=bfd  CMakeFiles/cmTC_4d3e8.dir/src.c.obj -o cmTC_4d3e8   && :
+        Run Build Command(s): /usr/bin/ninja -v cmTC_16e5c
+        [1/2] /opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc -DC_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS  -nostartfiles -nostdlib -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--entry=0 -fuse-ld=bfd -std=c99   -Wformat-signedness -o CMakeFiles/cmTC_16e5c.dir/src.c.obj -c /home/glorious/programming/zephyrproject/zephyr_ble_app/build/CMakeFiles/CMakeScratch/TryCompile-0DMhRV/src.c
+        [2/2] : && /opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc -nostartfiles -nostdlib -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -isystem "/opt/zephyr-sdk/gnu/arm-zephyr-eabi/bin/../lib/gcc/arm-zephyr-eabi/14.3.0/include" -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--entry=0 -fuse-ld=bfd  CMakeFiles/cmTC_16e5c.dir/src.c.obj -o cmTC_16e5c   && :
         
       exitCode: 0
 ...
